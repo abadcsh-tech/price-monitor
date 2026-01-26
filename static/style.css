@@ -95,7 +95,7 @@ body::before {
 }
 
 /* --- Container --- */
-.container { max-width: 1000px; position: relative; z-index: 1; }
+.container { max-width: 1000px; margin: 0 auto; padding: 0 1rem; position: relative; z-index: 1; }
 .main-content { padding: 2rem 0 4rem; }
 
 /* --- Cards (glassmorphism) --- */
@@ -362,7 +362,20 @@ body::before {
     border-color: rgba(124, 58, 237, 0.4);
     background: rgba(255, 255, 255, 0.04);
 }
-.add-form .row { justify-content: center; }
+
+/* --- Form horizontal layout --- */
+.form-row-horizontal {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+}
+.form-row-horizontal .form-field {
+    display: flex;
+    flex-direction: column;
+}
 
 /* --- Section headers --- */
 .section-header {
@@ -405,6 +418,12 @@ body::before {
 }
 
 /* --- Modal --- */
+.modal-dialog {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1.75rem;
+    margin-bottom: 1.75rem;
+}
 .modal-content {
     background: rgba(15, 10, 31, 0.95);
     backdrop-filter: blur(30px);
@@ -421,6 +440,9 @@ body::before {
 .modal-footer {
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: center;
+    gap: .5rem;
 }
 .modal-title {
     font-weight: 800;
@@ -534,7 +556,8 @@ a.product-link:hover {
     }
     .section-header .btn { position: static; }
     .section-header { flex-wrap: wrap; gap: .5rem; }
-    .add-form .row { flex-direction: column; }
-    .add-form .col-auto { width: 100%; }
+    .form-row-horizontal { flex-direction: column; align-items: stretch; }
+    .form-row-horizontal .form-field { width: 100%; }
+    .form-row-horizontal .form-field .input-group { width: 100% !important; }
     .card-body { padding: 1rem; }
 }

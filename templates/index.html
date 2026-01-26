@@ -18,7 +18,7 @@
             {% endif %}
         </div>
     </div>
-    <div class="d-flex gap-2 flex-wrap">
+    <div class="d-flex gap-2 align-items-center">
         {% if monitoring %}
         <form method="post" action="{{ url_for('monitor_stop') }}">
             <button class="btn btn-outline-danger btn-sm">
@@ -68,8 +68,8 @@
     <!-- 규칙 추가 폼 -->
     <div class="card-body">
         <form method="post" action="{{ url_for('add_rule') }}" class="add-form">
-            <div class="row g-2 align-items-end justify-content-center">
-                <div class="col-auto">
+            <div class="form-row-horizontal">
+                <div class="form-field">
                     <label class="form-label">구성원</label>
                     <select name="category" class="form-select form-select-sm">
                         {% for cat in categories %}
@@ -77,19 +77,19 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-auto">
+                <div class="form-field">
                     <label class="form-label">유형</label>
                     <select name="rule_type" class="form-select form-select-sm">
                         <option value="brand">🏷️ 브랜드</option>
                         <option value="keyword">🔑 키워드</option>
                     </select>
                 </div>
-                <div class="col">
+                <div class="form-field" style="flex:1; min-width:120px;">
                     <label class="form-label">값</label>
                     <input type="text" name="value" class="form-control form-control-sm"
                            placeholder="예: Apple, Samsung, iPhone ..." required>
                 </div>
-                <div class="col-auto">
+                <div class="form-field">
                     <label class="form-label">최소 할인율</label>
                     <div class="input-group input-group-sm" style="width:120px">
                         <input type="number" name="min_discount_percent" class="form-control"
@@ -97,7 +97,7 @@
                         <span class="input-group-text">%</span>
                     </div>
                 </div>
-                <div class="col-auto">
+                <div class="form-field" style="align-self:flex-end;">
                     <button class="btn btn-primary btn-sm">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="me-1"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         추가
