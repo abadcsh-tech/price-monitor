@@ -210,10 +210,10 @@ class AlertDB:
 
         try:
             with open(config_path, "r", encoding="utf-8") as f:
-                cfg = yaml.safe_load(f)
+                cfg = yaml.safe_load(f) or {}
         except FileNotFoundError:
-            logger.warning("config.yaml not found, skipping seed")
-            return
+            logger.warning("config.yaml not found, using environment variables only")
+            cfg = {}
 
         # Seed settings (environment variables take priority over config.yaml)
         tg = cfg.get("telegram", {})
