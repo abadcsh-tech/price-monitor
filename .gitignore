@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+price_alerts.db
+*.db-journal
+debug_page.html
+monitor.log
+.claude/
+config.yaml

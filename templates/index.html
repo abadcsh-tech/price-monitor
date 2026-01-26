@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- 모니터링 상태 바 -->
+<div class="status-bar">
+    <div class="status-info">
+        <span class="status-dot {{ 'on' if monitoring else 'off' }}"></span>
+        <div>
+            <div class="status-label">
+                {{ '모니터링 실행중' if monitoring else '모니터링 중지됨' }}
+            </div>
+            {% if monitoring %}
+            <div class="status-sub">{{ interval }}분 간격으로 자동 스캔</div>
+            {% else %}
+            <div class="status-sub">시작 버튼을 눌러 활성화하세요</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        {% if monitoring %}
+        <form method="post" action="{{ url_for('monitor_stop') }}">
+            <button class="btn btn-outline-danger btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="me-1"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+                중지
+            </button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('monitor_start') }}">
+            <button class="btn btn-success btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="me-1"><polygon points="6,4 20,12 6,20"/></svg>
+                시작
+            </button>
+        </form>
+        {% endif %}
+        <form method="post" action="{{ url_for('monitor_run_now') }}">
+            <button class="btn btn-primary btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                즉시 실행
+            </button>
+        </form>
+        <button class="btn btn-ghost btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            설정
+        </button>
+    </div>
+</div>
+
+<!-- 감시 규칙 -->
+<div class="card mb-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            감시 규칙
+            <span class="section-count">{{ rules|length }}개</span>
+        </h2>
+    </div>
+
+    <!-- 규칙 추가 폼 -->
+    <div class="card-body">
+        <form method="post" action="{{ url_for('add_rule') }}" class="add-form">
+            <div class="row g-2 align-items-end">
+                <div class="col-auto">
+                    <label class="form-label">유형</label>
+                    <select name="rule_type" class="form-select form-select-sm">
+                        <option value="brand">브랜드</option>
+                        <option value="keyword">키워드</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label class="form-label">값</label>
+                    <input type="text" name="value" class="form-control form-control-sm"
+                           placeholder="예: Apple, Samsung, iPhone ..." required>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label">최소 할인율</label>
+                    <div class="input-group input-group-sm" style="width:110px">
+                        <input type="number" name="min_discount_percent" class="form-control"
+                               value="20" min="0" max="100" step="1">
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary btn-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="me-1"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        추가
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- 규칙 테이블 -->
+    {% if rules %}
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>유형</th>
+                    <th>값</th>
+                    <th>최소 할인율</th>
+                    <th>상태</th>
+                    <th style="width:120px">작업</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for rule in rules %}
+                <tr class="{{ 'row-disabled' if not rule.enabled }}">
+                    <td>
+                        <span class="pill {{ 'pill-brand' if rule.rule_type == 'brand' else 'pill-keyword' }}">
+                            {{ '브랜드' if rule.rule_type == 'brand' else '키워드' }}
+                        </span>
+                    </td>
+                    <td style="font-weight:500">{{ rule.value }}</td>
+                    <td><span class="text-mono">{{ rule.min_discount_percent|int }}%</span></td>
+                    <td>
+                        <form method="post" action="{{ url_for('toggle_rule', rule_id=rule.id) }}" class="d-inline">
+                            <button class="pill {{ 'pill-on' if rule.enabled else 'pill-off' }}" style="border:none;cursor:pointer">
+                                {{ '활성' if rule.enabled else '비활성' }}
+                            </button>
+                        </form>
+                    </td>
+                    <td>
+                        <div class="btn-group-actions">
+                            <button class="btn btn-ghost btn-icon"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editModal"
+                                    data-rule-id="{{ rule.id }}"
+                                    data-rule-value="{{ rule.value }}"
+                                    data-rule-discount="{{ rule.min_discount_percent }}"
+                                    title="수정">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                            <form method="post" action="{{ url_for('delete_rule', rule_id=rule.id) }}" class="d-inline">
+                                <button class="btn btn-ghost btn-icon"
+                                        onclick="return confirm('정말 삭제하시겠습니까?')"
+                                        title="삭제">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <p>등록된 감시 규칙이 없습니다.<br>위 폼에서 브랜드 또는 키워드를 추가하세요.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 알림 이력 -->
+<div class="card mb-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            알림 이력
+            <span class="section-count">{{ history|length }}건</span>
+        </h2>
+        <button class="btn btn-ghost btn-sm" onclick="refreshHistory()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            새로고침
+        </button>
+    </div>
+
+    {% if history %}
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>시간</th>
+                    <th>제품명</th>
+                    <th>할인가</th>
+                    <th>할인율</th>
+                    <th>링크</th>
+                </tr>
+            </thead>
+            <tbody id="history-body">
+            {% for h in history %}
+                <tr>
+                    <td class="time-cell">{{ h.alerted_at }}</td>
+                    <td style="font-weight:500">{{ h.product_name or '-' }}</td>
+                    <td class="text-mono">{{ h.price }}</td>
+                    <td>
+                        {% if h.discount %}
+                            <span class="discount-badge">{{ h.discount }}</span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if h.product_url and h.product_url.startswith('http') %}
+                            <a href="{{ h.product_url }}" target="_blank" rel="noopener" class="product-link">보기</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <p>아직 알림 이력이 없습니다.<br>모니터링을 실행하면 여기에 표시됩니다.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 규칙 수정 모달 -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="editForm" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">규칙 수정</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">값</label>
+                        <input type="text" name="value" id="editValue" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">최소 할인율</label>
+                        <div class="input-group">
+                            <input type="number" name="min_discount_percent" id="editDiscount"
+                                   class="form-control" min="0" max="100" step="1">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 설정 모달 -->
+<div class="modal fade" id="settingsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="{{ url_for('settings_page') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                        설정
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="settingsBody">
+                    <div class="text-center text-muted py-3">불러오는 중...</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" id="testTelegram">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        텔레그램 테스트
+                    </button>
+                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('editModal').addEventListener('show.bs.modal', function(e) {
+    const btn = e.relatedTarget;
+    document.getElementById('editForm').action = '/rules/' + btn.dataset.ruleId + '/edit';
+    document.getElementById('editValue').value = btn.dataset.ruleValue;
+    document.getElementById('editDiscount').value = btn.dataset.ruleDiscount;
+});
+
+document.getElementById('settingsModal').addEventListener('show.bs.modal', function() {
+    fetch('/settings')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('settingsBody').innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label">Telegram Bot Token</label>
+                    <input type="text" name="telegram_bot_token" class="form-control"
+                           value="${data.telegram_bot_token || ''}" placeholder="123456:ABC-DEF...">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Telegram Chat ID</label>
+                    <input type="text" name="telegram_chat_id" class="form-control"
+                           value="${data.telegram_chat_id || ''}" placeholder="123456789">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">모니터링 간격 (분)</label>
+                    <input type="number" name="monitoring_interval_minutes" class="form-control"
+                           value="${data.monitoring_interval_minutes || '30'}" min="1">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">모니터링 URL</label>
+                    <input type="url" name="monitoring_url" class="form-control"
+                           value="${data.monitoring_url || 'https://www.toppreise.ch/new-best-prices'}">
+                </div>
+            `;
+        });
+});
+
+document.getElementById('testTelegram').addEventListener('click', function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>전송중...';
+    fetch('/settings/test', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            alert(data.ok ? '테스트 메시지가 전송되었습니다!' : '전송 실패: ' + (data.error || '알 수 없는 오류'));
+        })
+        .catch(() => alert('요청 실패'))
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>텔레그램 테스트';
+        });
+});
+
+function refreshHistory() {
+    fetch('/history')
+        .then(r => r.json())
+        .then(data => {
+            const tbody = document.getElementById('history-body');
+            if (!tbody) { location.reload(); return; }
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><p>아직 알림 이력이 없습니다.</p></td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(h => `
+                <tr>
+                    <td class="time-cell">${h.alerted_at}</td>
+                    <td style="font-weight:500">${h.product_name || '-'}</td>
+                    <td class="text-mono">${h.price}</td>
+                    <td>${h.discount ? '<span class="discount-badge">' + h.discount + '</span>' : '-'}</td>
+                    <td>${h.product_url && h.product_url.startsWith('http')
+                        ? '<a href="' + h.product_url + '" target="_blank" rel="noopener" class="product-link">보기</a>'
+                        : '-'}</td>
+                </tr>
+            `).join('');
+        });
+}
+</script>
+{% endblock %}

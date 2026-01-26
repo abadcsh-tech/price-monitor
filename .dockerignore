@@ -1,0 +1,10 @@
+__pycache__
+*.pyc
+.claude
+price_alerts.db
+debug_page.html
+monitor.log
+*.db-journal
+.git
+.gitignore
+run.sh

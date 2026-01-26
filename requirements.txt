@@ -1,0 +1,5 @@
+playwright==1.49.1
+python-telegram-bot>=20.7
+apscheduler>=3.10.4
+pyyaml>=6.0.1
+flask>=3.0.0

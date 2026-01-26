@@ -1,0 +1,24 @@
+name: price-monitor
+
+services:
+  price-monitor:
+    build: .
+    container_name: price-monitor
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    volumes:
+      - price-data:/data
+    shm_size: 256m
+    environment:
+      - DB_PATH=/data/price_alerts.db
+      - DATA_DIR=/data
+      - PORT=5001
+      # Uncomment and set these to override config.yaml values:
+      # - TELEGRAM_BOT_TOKEN=your_bot_token
+      # - TELEGRAM_CHAT_ID=your_chat_id
+      # - MONITORING_URL=https://www.toppreise.ch/new-best-prices
+      # - MONITORING_INTERVAL=30
+
+volumes:
+  price-data:
