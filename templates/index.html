@@ -18,7 +18,7 @@
             {% endif %}
         </div>
     </div>
-    <div class="d-flex gap-2 align-items-center">
+    <div class="status-buttons">
         {% if monitoring %}
         <form method="post" action="{{ url_for('monitor_stop') }}">
             <button class="btn btn-outline-danger btn-sm">

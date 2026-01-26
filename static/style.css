@@ -137,10 +137,9 @@ body::before {
     -webkit-backdrop-filter: blur(20px);
     padding: 1.5rem 2rem;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    justify-content: center;
     gap: 1rem;
     margin-bottom: 2rem;
     text-align: center;
@@ -157,6 +156,13 @@ body::before {
     background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 50%, var(--accent-blue) 100%);
 }
 .status-info { display: flex; align-items: center; gap: .75rem; }
+.status-buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+}
 .status-dot {
     width: 14px; height: 14px;
     border-radius: 50%;
@@ -435,8 +441,24 @@ body::before {
 .modal-header {
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.modal-body { padding: 1.5rem; }
+.modal-header .btn-close {
+    position: absolute;
+    right: 1.5rem;
+}
+.modal-body {
+    padding: 1.5rem;
+    text-align: center;
+}
+.modal-body .mb-3 {
+    text-align: left;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
 .modal-footer {
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     padding: 1.25rem 1.5rem;
@@ -549,11 +571,8 @@ a.product-link:hover {
 /* --- Responsive --- */
 @media (max-width: 768px) {
     .top-nav .brand { font-size: 1.1rem; }
-    .status-bar {
-        padding: 1.2rem 1rem;
-        flex-direction: column;
-        justify-content: center;
-    }
+    .status-bar { padding: 1.2rem 1rem; }
+    .status-buttons { flex-wrap: wrap; }
     .section-header .btn { position: static; }
     .section-header { flex-wrap: wrap; gap: .5rem; }
     .form-row-horizontal { flex-direction: column; align-items: stretch; }
