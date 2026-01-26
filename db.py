@@ -219,6 +219,11 @@ class AlertDB:
         tg = cfg.get("telegram", {})
         bot_token = os.environ.get("TELEGRAM_BOT_TOKEN") or tg.get("bot_token")
         chat_id = os.environ.get("TELEGRAM_CHAT_ID") or tg.get("chat_id")
+        logger.info("Env check: BOT_TOKEN=%s, CHAT_ID=%s, URL=%s, INTERVAL=%s",
+                     "set" if os.environ.get("TELEGRAM_BOT_TOKEN") else "missing",
+                     "set" if os.environ.get("TELEGRAM_CHAT_ID") else "missing",
+                     "set" if os.environ.get("MONITORING_URL") else "missing",
+                     "set" if os.environ.get("MONITORING_INTERVAL") else "missing")
         if bot_token:
             self.set_setting("telegram_bot_token", bot_token)
         if chat_id:
