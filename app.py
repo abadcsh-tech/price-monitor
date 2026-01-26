@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from db import AlertDB
-from scraper import scrape_best_prices
+from scraper import scrape_best_prices, scrape_preispirat_rss
 from notifier import send_telegram_alert
 
 # --- Logging ---
@@ -49,7 +49,14 @@ def scan_job():
         products = asyncio.run(scrape_best_prices(url=url, rules=rules))
     except Exception as e:
         logger.error("Scraping failed: %s", e)
-        return
+        products = []
+
+    # Preispirat RSS feed
+    try:
+        rss_products = asyncio.run(scrape_preispirat_rss(rules=rules))
+        products.extend(rss_products)
+    except Exception as e:
+        logger.warning("Preispirat RSS failed: %s", e)
 
     if not products:
         logger.info("No qualifying products found.")

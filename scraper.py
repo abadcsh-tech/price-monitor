@@ -1,7 +1,11 @@
 import logging
 import os
+import re
+import ssl
+import urllib.request
 from pathlib import Path
 
+import feedparser
 from playwright.async_api import async_playwright
 
 logger = logging.getLogger(__name__)
@@ -189,9 +193,91 @@ def _match_rules(manufacturer: str, full_name: str,
 
 
 def _parse_price(text: str) -> float | None:
-    """Parse a price string like '1,299.00' or '3.84' into a float."""
+    """Parse a price string like '1,299.00', '3.84', or '189.-' into a float."""
     cleaned = text.replace("'", "").replace(",", "").replace(" ", "").replace("CHF", "").strip()
+    cleaned = re.sub(r'\.-$', '', cleaned)
     try:
         return float(cleaned)
     except ValueError:
         return None
+
+
+# --- Preispirat RSS ---
+
+PREISPIRAT_RSS_URL = "https://www.preispirat.ch/feed/"
+
+
+async def scrape_preispirat_rss(rules: list[dict] | None = None) -> list[dict]:
+    """Scrape Preispirat.ch RSS feed for deals and match against rules."""
+    products = []
+
+    # Fetch with SSL workaround (preispirat.ch certificate chain issue)
+    ssl_ctx = ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = ssl.CERT_NONE
+    req = urllib.request.Request(PREISPIRAT_RSS_URL,
+                                headers={"User-Agent": "Mozilla/5.0"})
+    resp = urllib.request.urlopen(req, context=ssl_ctx)
+    feed = feedparser.parse(resp.read())
+    logger.info("Preispirat RSS: %d entries", len(feed.entries))
+
+    for entry in feed.entries:
+        title = entry.get("title", "").strip()
+        if not title:
+            continue
+
+        link = entry.get("link", "")
+        description = entry.get("description", "")
+
+        # Extract shop from title: "Product bei ShopName"
+        shop = "Preispirat"
+        bei_match = re.search(r'\bbei\s+(.+)$', title, re.IGNORECASE)
+        if bei_match:
+            shop = bei_match.group(1).strip()
+
+        # Extract prices from description HTML
+        new_price_val = None
+        old_price_val = None
+
+        price_match = re.search(r'Preis:\s*CHF\s*([\d\'.,]+(?:-)?)', description)
+        if price_match:
+            new_price_val = _parse_price(price_match.group(1))
+
+        old_price_match = re.search(r'Zweitbester\s+Preis:\s*CHF\s*([\d\'.,]+(?:-)?)', description)
+        if old_price_match:
+            old_price_val = _parse_price(old_price_match.group(1))
+
+        # Calculate discount
+        discount_pct = 0.0
+        if old_price_val and new_price_val and old_price_val > 0:
+            discount_pct = ((old_price_val - new_price_val) / old_price_val) * 100
+
+        # Match against rules
+        if rules:
+            # Use title as both manufacturer and full_name for matching
+            matched = _match_rules(title, title, discount_pct, rules)
+            if not matched:
+                continue
+            for rule_id, rule_min in matched:
+                products.append({
+                    "name": title,
+                    "old_price": f"CHF {old_price_val:,.2f}" if old_price_val else "",
+                    "new_price": f"CHF {new_price_val:,.2f}" if new_price_val else "",
+                    "discount": f"-{discount_pct:.0f}%" if discount_pct > 0 else "",
+                    "shop": shop,
+                    "url": link,
+                    "matched_rule_id": rule_id,
+                })
+        else:
+            products.append({
+                "name": title,
+                "old_price": f"CHF {old_price_val:,.2f}" if old_price_val else "",
+                "new_price": f"CHF {new_price_val:,.2f}" if new_price_val else "",
+                "discount": f"-{discount_pct:.0f}%" if discount_pct > 0 else "",
+                "shop": shop,
+                "url": link,
+                "matched_rule_id": None,
+            })
+
+    logger.info("Preispirat RSS: %d matching product(s)", len(products))
+    return products
