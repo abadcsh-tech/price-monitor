@@ -26,6 +26,7 @@ db.seed_from_config()
 
 scheduler = BackgroundScheduler(daemon=True)
 SCAN_JOB_ID = "price_scan"
+FAMILY_MEMBERS = ["조성현", "이진경", "조예나"]
 
 # --- Scan logic ---
 
@@ -146,7 +147,8 @@ def index():
                            rules=rules,
                            history=history,
                            monitoring=monitoring,
-                           interval=interval)
+                           interval=interval,
+                           categories=FAMILY_MEMBERS)
 
 
 @app.route("/rules", methods=["POST"])
@@ -158,8 +160,9 @@ def add_rule():
     except ValueError:
         min_discount = 20.0
 
+    category = request.form.get("category", "조성현")
     if value:
-        db.add_rule(rule_type, value, min_discount)
+        db.add_rule(rule_type, value, min_discount, category=category)
     return redirect(url_for("index"))
 
 
@@ -183,7 +186,8 @@ def edit_rule(rule_id):
         min_discount = float(min_discount) if min_discount else None
     except ValueError:
         min_discount = None
-    db.update_rule(rule_id, value=value, min_discount_percent=min_discount)
+    category = request.form.get("category")
+    db.update_rule(rule_id, value=value, min_discount_percent=min_discount, category=category)
     return redirect(url_for("index"))
 
 

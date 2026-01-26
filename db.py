@@ -55,6 +55,7 @@ class AlertDB:
             """)
             # Migrate: add columns to alert_history if missing
             self._migrate_alert_history(conn)
+            self._migrate_watch_rules(conn)
             conn.commit()
         logger.info("Database initialized: %s", self.db_path)
 
@@ -67,6 +68,12 @@ class AlertDB:
             conn.execute("ALTER TABLE alert_history ADD COLUMN discount TEXT DEFAULT ''")
         if "rule_id" not in columns:
             conn.execute("ALTER TABLE alert_history ADD COLUMN rule_id INTEGER")
+
+    def _migrate_watch_rules(self, conn):
+        cursor = conn.execute("PRAGMA table_info(watch_rules)")
+        columns = {row[1] for row in cursor.fetchall()}
+        if "category" not in columns:
+            conn.execute("ALTER TABLE watch_rules ADD COLUMN category TEXT NOT NULL DEFAULT '조성현'")
 
     # --- Alert History ---
 
@@ -132,12 +139,13 @@ class AlertDB:
         return [dict(r) for r in rows]
 
     def add_rule(self, rule_type: str, value: str,
-                 min_discount_percent: float = 20) -> int:
+                 min_discount_percent: float = 20,
+                 category: str = "조성현") -> int:
         with self._conn() as conn:
             cursor = conn.execute(
-                """INSERT INTO watch_rules (rule_type, value, min_discount_percent)
-                   VALUES (?, ?, ?)""",
-                (rule_type, value, min_discount_percent),
+                """INSERT INTO watch_rules (rule_type, value, min_discount_percent, category)
+                   VALUES (?, ?, ?, ?)""",
+                (rule_type, value, min_discount_percent, category),
             )
             conn.commit()
             return cursor.lastrowid
@@ -156,7 +164,8 @@ class AlertDB:
             conn.commit()
 
     def update_rule(self, rule_id: int, value: str | None = None,
-                    min_discount_percent: float | None = None):
+                    min_discount_percent: float | None = None,
+                    category: str | None = None):
         updates = []
         params = []
         if value is not None:
@@ -165,6 +174,9 @@ class AlertDB:
         if min_discount_percent is not None:
             updates.append("min_discount_percent = ?")
             params.append(min_discount_percent)
+        if category is not None:
+            updates.append("category = ?")
+            params.append(category)
         if not updates:
             return
         params.append(rule_id)

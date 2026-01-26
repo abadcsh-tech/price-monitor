@@ -47,6 +47,14 @@
     </div>
 </div>
 
+<!-- 카테고리 탭 -->
+<div class="category-tabs">
+    <button class="category-tab active" data-category="all">👨‍👩‍👧 전체</button>
+    <button class="category-tab" data-category="조성현">👨 조성현</button>
+    <button class="category-tab" data-category="이진경">👩 이진경</button>
+    <button class="category-tab" data-category="조예나">👧 조예나</button>
+</div>
+
 <!-- 감시 규칙 -->
 <div class="card mb-section">
     <div class="section-header">
@@ -60,7 +68,15 @@
     <!-- 규칙 추가 폼 -->
     <div class="card-body">
         <form method="post" action="{{ url_for('add_rule') }}" class="add-form">
-            <div class="row g-2 align-items-end">
+            <div class="row g-2 align-items-end justify-content-center">
+                <div class="col-auto">
+                    <label class="form-label">구성원</label>
+                    <select name="category" class="form-select form-select-sm">
+                        {% for cat in categories %}
+                        <option value="{{ cat }}">{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div class="col-auto">
                     <label class="form-label">유형</label>
                     <select name="rule_type" class="form-select form-select-sm">
@@ -97,6 +113,7 @@
         <table class="table">
             <thead>
                 <tr>
+                    <th>구성원</th>
                     <th>유형</th>
                     <th>값</th>
                     <th>최소 할인율</th>
@@ -104,9 +121,12 @@
                     <th style="width:130px">작업</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="rules-body">
             {% for rule in rules %}
-                <tr class="{{ 'row-disabled' if not rule.enabled }}">
+                <tr class="{{ 'row-disabled' if not rule.enabled }}" data-category="{{ rule.category or '조성현' }}">
+                    <td>
+                        <span class="pill pill-category">{{ rule.category or '조성현' }}</span>
+                    </td>
                     <td>
                         <span class="pill {{ 'pill-brand' if rule.rule_type == 'brand' else 'pill-keyword' }}">
                             {{ '🏷️ 브랜드' if rule.rule_type == 'brand' else '🔑 키워드' }}
@@ -129,6 +149,7 @@
                                     data-rule-id="{{ rule.id }}"
                                     data-rule-value="{{ rule.value }}"
                                     data-rule-discount="{{ rule.min_discount_percent }}"
+                                    data-rule-category="{{ rule.category or '조성현' }}"
                                     title="수정">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </button>
@@ -224,6 +245,14 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
+                        <label class="form-label">구성원</label>
+                        <select name="category" id="editCategory" class="form-select">
+                            {% for cat in categories %}
+                            <option value="{{ cat }}">{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">값</label>
                         <input type="text" name="value" id="editValue" class="form-control" required>
                     </div>
@@ -278,6 +307,24 @@ document.getElementById('editModal').addEventListener('show.bs.modal', function(
     document.getElementById('editForm').action = '/rules/' + btn.dataset.ruleId + '/edit';
     document.getElementById('editValue').value = btn.dataset.ruleValue;
     document.getElementById('editDiscount').value = btn.dataset.ruleDiscount;
+    document.getElementById('editCategory').value = btn.dataset.ruleCategory || '조성현';
+});
+
+// Category tab filtering
+document.querySelectorAll('.category-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.category-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        var category = this.dataset.category;
+        var rows = document.querySelectorAll('#rules-body tr');
+        rows.forEach(function(row) {
+            if (category === 'all' || row.dataset.category === category) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
 });
 
 document.getElementById('settingsModal').addEventListener('show.bs.modal', function() {

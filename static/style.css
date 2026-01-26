@@ -137,9 +137,9 @@ body::before {
     -webkit-backdrop-filter: blur(20px);
     padding: 1.5rem 2rem;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     flex-wrap: wrap;
     gap: 1rem;
     margin-bottom: 2rem;
@@ -486,10 +486,52 @@ a.product-link:hover {
     border: 1px solid rgba(248, 113, 113, 0.2);
 }
 
+/* --- Category tabs --- */
+.category-tabs {
+    display: flex;
+    gap: .5rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+.category-tab {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: .92rem;
+    padding: .6rem 1.3rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.category-tab:hover {
+    background: var(--glass-hover);
+    border-color: rgba(124, 58, 237, 0.3);
+    color: var(--text-light);
+}
+.category-tab.active {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 8px 30px rgba(124, 58, 237, 0.3);
+}
+
+/* --- Category pill --- */
+.pill-category {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(56, 189, 248, 0.05));
+    color: var(--accent-blue);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
 /* --- Responsive --- */
 @media (max-width: 768px) {
     .top-nav .brand { font-size: 1.1rem; }
-    .status-bar { padding: 1.2rem 1rem; }
+    .status-bar {
+        padding: 1.2rem 1rem;
+        flex-direction: column;
+        justify-content: center;
+    }
     .section-header .btn { position: static; }
     .section-header { flex-wrap: wrap; gap: .5rem; }
     .add-form .row { flex-direction: column; }
