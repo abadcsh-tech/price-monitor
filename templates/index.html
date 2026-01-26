@@ -2,51 +2,6 @@
 
 {% block content %}
 
-<!-- 모니터링 상태 바 -->
-<div class="status-bar">
-    <div class="status-info">
-        <span class="status-emoji">{{ '🟢' if monitoring else '⏸️' }}</span>
-        <span class="status-dot {{ 'on' if monitoring else 'off' }}"></span>
-        <div>
-            <div class="status-label">
-                {{ '모니터링 실행중' if monitoring else '모니터링 중지됨' }}
-            </div>
-            {% if monitoring %}
-            <div class="status-sub">⏱️ {{ interval }}분 간격으로 자동 스캔 중</div>
-            {% else %}
-            <div class="status-sub">시작 버튼을 눌러 활성화하세요</div>
-            {% endif %}
-        </div>
-    </div>
-    <div class="status-buttons">
-        {% if monitoring %}
-        <form method="post" action="{{ url_for('monitor_stop') }}">
-            <button class="btn btn-outline-danger btn-sm">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-1"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
-                중지
-            </button>
-        </form>
-        {% else %}
-        <form method="post" action="{{ url_for('monitor_start') }}">
-            <button class="btn btn-success btn-sm">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-1"><polygon points="6,4 20,12 6,20"/></svg>
-                시작
-            </button>
-        </form>
-        {% endif %}
-        <form method="post" action="{{ url_for('monitor_run_now') }}">
-            <button class="btn btn-primary btn-sm">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-                즉시 실행
-            </button>
-        </form>
-        <button class="btn btn-ghost btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            설정
-        </button>
-    </div>
-</div>
-
 <!-- 카테고리 탭 -->
 <div class="category-tabs">
     <button class="category-tab active" data-category="all">👨‍👩‍👧 전체</button>
@@ -55,17 +10,17 @@
     <button class="category-tab" data-category="조예나">👧 조예나</button>
 </div>
 
-<!-- 감시 규칙 -->
+<!-- 찾고 있는 아이템 -->
 <div class="card mb-section">
     <div class="section-header">
         <h2 class="section-title">
-            <span class="section-emoji">👁️</span>
-            감시 규칙
+            <span class="section-emoji">🔍</span>
+            찾고 있는 아이템
             <span class="section-count">{{ rules|length }}개</span>
         </h2>
     </div>
 
-    <!-- 규칙 추가 폼 -->
+    <!-- 아이템 추가 폼 -->
     <div class="card-body">
         <form method="post" action="{{ url_for('add_rule') }}" class="add-form">
             <div class="form-row-horizontal">
@@ -85,12 +40,12 @@
                     </select>
                 </div>
                 <div class="form-field" style="flex:1; min-width:120px;">
-                    <label class="form-label">값</label>
+                    <label class="form-label">아이템</label>
                     <input type="text" name="value" class="form-control form-control-sm"
                            placeholder="예: Apple, Samsung, iPhone ..." required>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">최소 할인율</label>
+                    <label class="form-label">최소 할인률</label>
                     <div class="input-group input-group-sm" style="width:120px">
                         <input type="number" name="min_discount_percent" class="form-control"
                                value="20" min="0" max="100" step="1">
@@ -107,7 +62,7 @@
         </form>
     </div>
 
-    <!-- 규칙 테이블 -->
+    <!-- 아이템 테이블 -->
     {% if rules %}
     <div class="table-responsive">
         <table class="table">
@@ -115,10 +70,10 @@
                 <tr>
                     <th>구성원</th>
                     <th>유형</th>
-                    <th>값</th>
-                    <th>최소 할인율</th>
+                    <th>아이템</th>
+                    <th>최소 할인률</th>
                     <th>상태</th>
-                    <th style="width:130px">작업</th>
+                    <th>수정</th>
                 </tr>
             </thead>
             <tbody id="rules-body">
@@ -142,25 +97,13 @@
                         </form>
                     </td>
                     <td>
-                        <div class="btn-group-actions">
+                        <form method="post" action="{{ url_for('delete_rule', rule_id=rule.id) }}" class="d-inline">
                             <button class="btn btn-ghost btn-icon"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#editModal"
-                                    data-rule-id="{{ rule.id }}"
-                                    data-rule-value="{{ rule.value }}"
-                                    data-rule-discount="{{ rule.min_discount_percent }}"
-                                    data-rule-category="{{ rule.category or '조성현' }}"
-                                    title="수정">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    onclick="return confirm('정말 삭제하시겠습니까?')"
+                                    title="삭제">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                             </button>
-                            <form method="post" action="{{ url_for('delete_rule', rule_id=rule.id) }}" class="d-inline">
-                                <button class="btn btn-ghost btn-icon"
-                                        onclick="return confirm('정말 삭제하시겠습니까?')"
-                                        title="삭제">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-                                </button>
-                            </form>
-                        </div>
+                        </form>
                     </td>
                 </tr>
             {% endfor %}
@@ -169,8 +112,8 @@
     </div>
     {% else %}
     <div class="empty-state">
-        <span class="empty-emoji">👁️‍🗨️</span>
-        <p>등록된 감시 규칙이 없습니다.<br>위 폼에서 브랜드 또는 키워드를 추가하세요.</p>
+        <span class="empty-emoji">🔍</span>
+        <p>등록된 아이템이 없습니다.<br>위 폼에서 브랜드 또는 키워드를 추가하세요.</p>
     </div>
     {% endif %}
 </div>
@@ -234,43 +177,48 @@
     {% endif %}
 </div>
 
-<!-- 규칙 수정 모달 -->
-<div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form id="editForm" method="post">
-                <div class="modal-header">
-                    <h5 class="modal-title">✏️ 규칙 수정</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">구성원</label>
-                        <select name="category" id="editCategory" class="form-select">
-                            {% for cat in categories %}
-                            <option value="{{ cat }}">{{ cat }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">값</label>
-                        <input type="text" name="value" id="editValue" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">최소 할인율</label>
-                        <div class="input-group">
-                            <input type="number" name="min_discount_percent" id="editDiscount"
-                                   class="form-control" min="0" max="100" step="1">
-                            <span class="input-group-text">%</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">취소</button>
-                    <button type="submit" class="btn btn-primary">💾 저장</button>
-                </div>
-            </form>
+<!-- 모니터링 상태 바 (맨 아래) -->
+<div class="status-bar">
+    <div class="status-info">
+        <span class="status-emoji">{{ '🟢' if monitoring else '⏸️' }}</span>
+        <span class="status-dot {{ 'on' if monitoring else 'off' }}"></span>
+        <div>
+            <div class="status-label">
+                {{ '모니터링 실행중' if monitoring else '모니터링 중지됨' }}
+            </div>
+            {% if monitoring %}
+            <div class="status-sub">⏱️ {{ interval }}분 간격으로 자동 스캔 중</div>
+            {% else %}
+            <div class="status-sub">시작 버튼을 눌러 활성화하세요</div>
+            {% endif %}
         </div>
+    </div>
+    <div class="status-buttons">
+        {% if monitoring %}
+        <form method="post" action="{{ url_for('monitor_stop') }}">
+            <button class="btn btn-outline-danger btn-sm">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-1"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+                중지
+            </button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('monitor_start') }}">
+            <button class="btn btn-success btn-sm">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-1"><polygon points="6,4 20,12 6,20"/></svg>
+                시작
+            </button>
+        </form>
+        {% endif %}
+        <form method="post" action="{{ url_for('monitor_run_now') }}">
+            <button class="btn btn-primary btn-sm">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                즉시 실행
+            </button>
+        </form>
+        <button class="btn btn-ghost btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            설정
+        </button>
     </div>
 </div>
 
@@ -302,14 +250,6 @@
 
 {% block scripts %}
 <script>
-document.getElementById('editModal').addEventListener('show.bs.modal', function(e) {
-    const btn = e.relatedTarget;
-    document.getElementById('editForm').action = '/rules/' + btn.dataset.ruleId + '/edit';
-    document.getElementById('editValue').value = btn.dataset.ruleValue;
-    document.getElementById('editDiscount').value = btn.dataset.ruleDiscount;
-    document.getElementById('editCategory').value = btn.dataset.ruleCategory || '조성현';
-});
-
 // Category tab filtering
 document.querySelectorAll('.category-tab').forEach(function(tab) {
     tab.addEventListener('click', function() {

@@ -126,7 +126,7 @@ body::before {
 }
 .card:hover::before { opacity: 1; }
 
-.card-body { padding: 1.5rem; }
+.card-body { padding: 1.5rem; width: 100%; }
 
 /* --- Status bar --- */
 .status-bar {
@@ -294,7 +294,9 @@ body::before {
 }
 
 /* --- Tables --- */
+.table-responsive { width: 100%; }
 .table {
+    width: 100%;
     margin-bottom: 0;
     font-size: .92rem;
     color: var(--text-light);
@@ -363,6 +365,7 @@ body::before {
     border-radius: 16px;
     padding: 1.25rem 1.5rem;
     border: 1px dashed rgba(124, 58, 237, 0.25);
+    width: 100%;
 }
 .add-form:hover {
     border-color: rgba(124, 58, 237, 0.4);
@@ -377,6 +380,7 @@ body::before {
     justify-content: center;
     gap: .75rem;
     flex-wrap: wrap;
+    width: 100%;
 }
 .form-row-horizontal .form-field {
     display: flex;
