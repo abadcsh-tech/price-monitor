@@ -15,13 +15,12 @@ feed = feedparser.parse(resp.read())
 
 print(f"Total entries: {len(feed.entries)}\n")
 
-for e in feed.entries:
-    t = e.title.lower()
-    if "airpods" in t or "ipad" in t or "macbook" in t or "iphone" in t:
-        d = e.get("description", "")
-        p1 = re.search(r"Preis:\s*CHF\s*([\d'.,]+(?:-)?)", d)
-        p2 = re.search(r"Zweitbester\s+Preis:\s*CHF\s*([\d'.,]+(?:-)?)", d)
-        print(e.title)
-        print(f"  Preis: {p1.group(1) if p1 else 'NONE'}")
-        print(f"  Zweitbester: {p2.group(1) if p2 else 'NONE'}")
-        print()
+for i, e in enumerate(feed.entries):
+    d = e.get("description", "")
+    p1 = re.search(r"Preis:\s*CHF\s*([\d'.,]+(?:-)?)", d)
+    p2 = re.search(r"Zweitbester\s+Preis:\s*CHF\s*([\d'.,]+(?:-)?)", d)
+    price = p1.group(1) if p1 else "-"
+    old = p2.group(1) if p2 else "-"
+    print(f"{i+1}. {e.title}")
+    print(f"   CHF {price} (alt: {old})")
+    print()
